@@ -1,8 +1,8 @@
 from collections import deque
 import random
-from tabulate import tabulate  # para mejorar la visualizacion del tablero
+from tabulate import tabulate  # Para mejorar la visualización del tablero
 
-# funcion para contar las inversiones
+# Función para contar las inversiones
 def contar_inversiones(tablero):
     inversions = 0
     for i in range(len(tablero)):
@@ -11,23 +11,23 @@ def contar_inversiones(tablero):
                 inversions += 1
     return inversions
 
-# funcion para verificar si un estado es resoluble
+# Función para verificar si un estado es resoluble
 def es_resoluble(tablero):
     return contar_inversiones(tablero) % 2 == 0
 
-# funcion para generar un estado inicial aleatorio y resoluble
+# Función para generar un estado inicial aleatorio y resoluble
 def generar_estado_inicial_resoluble():
     while True:
         tablero = random.sample(range(9), 9)
         if es_resoluble(tablero):
             return tablero
 
-# clase puzzle para representar el problema del 8-puzzle
+# Clase Puzzle para representar el problema del 8-puzzle
 class Puzzle:
     def __init__(self, tablero):
         self.tablero = tablero
-        self.blank_index = tablero.index(0)  # indice de la casilla vacia
-        self.parent = None  # para rastrear el nodo padre
+        self.blank_index = tablero.index(0)  # Índice de la casilla vacía
+        self.parent = None  # Para rastrear el nodo padre
     
     def __eq__(self, otro):
         return self.tablero == otro.tablero
@@ -35,7 +35,7 @@ class Puzzle:
     def __hash__(self):
         return hash(tuple(self.tablero))
 
-# funcion para verificar si el movimiento es valido
+# Función para verificar si el movimiento es válido
 def movimiento_valido(puzzle, movimiento):
     fila_vacia, col_vacia = puzzle.blank_index // 3, puzzle.blank_index % 3
     if movimiento == 'ARRIBA':
@@ -47,7 +47,7 @@ def movimiento_valido(puzzle, movimiento):
     elif movimiento == 'DERECHA':
         return col_vacia < 2
 
-# funcion para aplicar un movimiento y generar un nuevo estado
+# Función para aplicar un movimiento y generar un nuevo estado
 def aplicar_movimiento(puzzle, movimiento):
     nuevo_tablero = puzzle.tablero.copy()
     blank_index = puzzle.blank_index
@@ -64,7 +64,7 @@ def aplicar_movimiento(puzzle, movimiento):
     nuevo_puzzle.parent = puzzle
     return nuevo_puzzle
 
-# funcion para generar los sucesores (posibles movimientos)
+# Función para generar los sucesores (posibles movimientos)
 def generar_sucesores(puzzle):
     movimientos = ['ARRIBA', 'ABAJO', 'IZQUIERDA', 'DERECHA']
     sucesores = []
@@ -73,7 +73,7 @@ def generar_sucesores(puzzle):
             sucesores.append(aplicar_movimiento(puzzle, movimiento))
     return sucesores
 
-# busqueda en amplitud (bfs)
+# Búsqueda en Amplitud (BFS)
 def bfs(estado_inicial, estado_objetivo):
     cola = deque([estado_inicial])
     visitados = set()
@@ -90,9 +90,9 @@ def bfs(estado_inicial, estado_objetivo):
                 cola.append(sucesor)
                 visitados.add(sucesor)
     
-    return None  # si no se encuentra solucion
+    return None  # Si no se encuentra solución
 
-# busqueda en profundidad (dfs)
+# Búsqueda en Profundidad (DFS)
 def dfs(estado_inicial, estado_objetivo):
     pila = [estado_inicial]
     visitados = set()
@@ -109,9 +109,37 @@ def dfs(estado_inicial, estado_objetivo):
                 pila.append(sucesor)
                 visitados.add(sucesor)
     
-    return None  # si no se encuentra solucion
+    return None  # Si no se encuentra solución
 
-# funcion para construir el camino desde el estado inicial al objetivo
+# Búsqueda en Profundidad Iterativa (IDDFS)
+def iddfs(estado_inicial, estado_objetivo, max_depth):
+    for depth in range(max_depth + 1):
+        resultado = dfs_limited(estado_inicial, estado_objetivo, depth)
+        if resultado is not None:
+            return resultado
+    return None  # Si no se encuentra solución
+
+# Búsqueda en Profundidad Limitada
+def dfs_limited(estado_inicial, estado_objetivo, limite):
+    pila = [(estado_inicial, 0)]  # (estado actual, profundidad actual)
+    visitados = set()
+    
+    while pila:
+        actual, profundidad = pila.pop()
+        if actual == estado_objetivo:
+            return construir_camino(actual)
+        
+        if profundidad < limite:
+            visitados.add(actual)
+            sucesores = generar_sucesores(actual)
+            for sucesor in sucesores:
+                if sucesor not in visitados:
+                    pila.append((sucesor, profundidad + 1))
+                    visitados.add(sucesor)
+    
+    return None  # Si no se encuentra solución
+
+# Función para construir el camino desde el estado inicial al objetivo
 def construir_camino(puzzle):
     camino = []
     while puzzle:
@@ -119,46 +147,51 @@ def construir_camino(puzzle):
         puzzle = puzzle.parent
     return camino
 
-# funcion para mostrar el tablero en forma de cubo (3x3) usando tabulate
+# Función para mostrar el tablero en forma de cubo (3x3) usando tabulate
 def mostrar_tablero(tablero):
-    cubo = [tablero[i:i+3] for i in range(0, len(tablero), 3)]  # dividir la lista en filas de 3
-    print(tabulate(cubo, tablefmt="fancy_grid"))  # usar tabulate para mostrar el cubo con formato
+    cubo = [tablero[i:i+3] for i in range(0, len(tablero), 3)]  # Dividir la lista en filas de 3
+    print(tabulate(cubo, tablefmt="fancy_grid"))  # Usar tabulate para mostrar el cubo con formato
 
-# funcion principal para seleccionar el algoritmo de busqueda
+# Función principal para seleccionar el algoritmo de búsqueda
 def main():
-    # generar un estado inicial resoluble
+    # Generar un estado inicial resoluble
     tablero_inicial = generar_estado_inicial_resoluble()
     puzzle_inicial = Puzzle(tablero_inicial)
     
-    # estado objetivo
+    # Estado objetivo
     tablero_objetivo = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     puzzle_objetivo = Puzzle(tablero_objetivo)
     
-    # seleccionar el algoritmo
-    print("selecciona el algoritmo de busqueda que deseas usar:")
-    print("1. busqueda en amplitud (bfs)")
-    print("2. busqueda en profundidad (dfs)")
-    opcion = input("ingresa el numero de tu opcion (1 o 2): ")
+    # Seleccionar el algoritmo
+    print("Selecciona el algoritmo de búsqueda que deseas usar:")
+    print("1. Búsqueda en Amplitud (BFS)")
+    print("2. Búsqueda en Profundidad (DFS)")
+    print("3. Búsqueda en Profundidad Iterativa (IDDFS)")
+    opcion = input("Ingresa el número de tu opción (1, 2 o 3): ")
     
     if opcion == '1':
-        print("usando busqueda en amplitud (bfs)...")
+        print("Usando Búsqueda en Amplitud (BFS)...")
         solucion = bfs(puzzle_inicial, puzzle_objetivo)
     elif opcion == '2':
-        print("usando busqueda en profundidad (dfs)...")
+        print("Usando Búsqueda en Profundidad (DFS)...")
         solucion = dfs(puzzle_inicial, puzzle_objetivo)
+    elif opcion == '3':
+        max_depth = int(input("Ingresa la profundidad máxima para IDDFS (numero de pasos, ejemplo 20): "))
+        print("Usando Búsqueda en Profundidad Iterativa (IDDFS)...")
+        solucion = iddfs(puzzle_inicial, puzzle_objetivo, max_depth)
     else:
-        print("opcion invalida.")
+        print("Opción inválida.")
         return
     
-    # mostrar solucion
+    # Mostrar solución
     if solucion:
-        print("solucion encontrada:")
+        print("Solución encontrada:")
         for paso, tablero in enumerate(solucion):
-            print(f"paso {paso + 1}:")
-            mostrar_tablero(tablero)  # mostrar el tablero en forma de cubo
+            print(f"Paso {paso + 1}:")
+            mostrar_tablero(tablero)  # Mostrar el tablero en forma de cubo
     else:
-        print("no se encontro una solucion.")
+        print("No se encontró una solución.")
 
-# ejecutar el programa principal
+# Ejecutar el programa principal
 if __name__ == "__main__":
     main()
