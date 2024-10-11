@@ -1,5 +1,6 @@
 from collections import deque
 import random
+from tabulate import tabulate  # Para mejorar la visualización del tablero
 
 # Función para contar las inversiones
 def contar_inversiones(tablero):
@@ -118,12 +119,10 @@ def construir_camino(puzzle):
         puzzle = puzzle.parent
     return camino
 
-# Función para mostrar el tablero en forma de cubo (3x3)
+# Función para mostrar el tablero en forma de cubo (3x3) usando tabulate
 def mostrar_tablero(tablero):
-    print(f"{tablero[0]} {tablero[1]} {tablero[2]}")
-    print(f"{tablero[3]} {tablero[4]} {tablero[5]}")
-    print(f"{tablero[6]} {tablero[7]} {tablero[8]}")
-    print()  # Espacio entre tableros
+    cubo = [tablero[i:i+3] for i in range(0, len(tablero), 3)]  # Dividir la lista en filas de 3
+    print(tabulate(cubo, tablefmt="fancy_grid"))  # Usar tabulate para mostrar el cubo con formato
 
 # Función principal para seleccionar el algoritmo de búsqueda
 def main():
